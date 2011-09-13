@@ -10,7 +10,7 @@ int main(int *argc,char* *argv)
   int sum;
   sum = 0;
   i = 0;
-  int __fbound0 = 9;
+  int __fbound0 = 10;
   for (; i <= __fbound0; ++i) {
     xs[i] = i;
     printf("%d\n",xs[i]);

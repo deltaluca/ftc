@@ -8,7 +8,7 @@ integer(4) function main(argc, argv)
 
     sum = 0
 
-    do i = 0,9
+    do i = 0,10
        xs(i) = i
        print *, xs(i)
        sum = sum + i
