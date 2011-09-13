@@ -1,2 +1,5 @@
 envvar ROSE_HOME should be set to point to rose installation to access include/lib directories
 envvar FTC should be set up to point to the location of the ftc directory containing the empty 'dummy.f90' file.
+
+'make' / 'make mode=debug' compiles ftc and the io lib in debug mode.
+'make mode=release' compiles ftc in release mode.
