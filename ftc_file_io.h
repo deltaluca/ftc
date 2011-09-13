@@ -20,6 +20,14 @@
     
 **/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void ftc__open_file(int id, const char* path);
 FILE* ftc__get_file(int id);
 void ftc__close_file(int id);  
+
+#ifdef __cplusplus
+}
+#endif

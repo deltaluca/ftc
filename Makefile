@@ -34,7 +34,7 @@ $(ODIR)/%.o: $(SDIR)/%.cpp
 
 all: $(OBJ)
 	$(CC) -o $(_EXEC) $(OBJ) $(LFLAGS)
-	g++ -c ftc_file_io.c
+	gcc -c ftc_file_io.c
 	ar -r libftc.a ftc_file_io.o
 	
 # ----------------------------------------
