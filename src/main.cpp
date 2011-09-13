@@ -3,6 +3,7 @@
 #include <rose.h>
 #include "printer.hpp"
 #include "translator.hpp"
+#include "main.hpp"
 #include <map>
 #include <string>
 
@@ -102,6 +103,28 @@ int main(int _argc, char* _argv[]) {
     return 0;
 }
 
+bool is_input_file(const SgFile& file, const vector<string>& argv) {
+    //determine if this is actually a file we specified.
+    //not a rose generated file for modules.
+    //
+    //rose likes to give us a FULL file path... but it seems that
+    //SgFile::get_originalCommandLineArgumentList(); returns a subset of 'argv'
+    //with cmdl[0] == argv[0]. So we use this as an ugly hack!
+    auto cmdl = file.get_originalCommandLineArgumentList();
+    bool found = (cmdl[0].compare(argv[0])==0);
+     
+    if(!found) {
+        #if DEBUG
+            cout << ".. ignoring ROSE generated file! :: " << file.getFileName() << endl;
+        #endif
+    }
+    return found;    
+}
+
+//bugfix 13sep
+vector<SgGlobal*> input_globals;
+//
+ 
 int fortran_to_cpp(vector<string> argv) {
     #if DEBUG
         cout << ">> fortran_to_cpp " << argv << endl;
@@ -124,30 +147,30 @@ int fortran_to_cpp(vector<string> argv) {
     
     //map each file, to the module names it uses.
     vector<pair<SgGlobal*,string>> use_statements;
-    
+
+    //bugfix: 13sep: xf_get_fn_decl in translator.cpp cannot find
+    //               other fortran files given in arguments
+    //               so let's find all of them first so the translator
+    //               can have access to all the input files.
     for(int i = 0; i<proj->numberOfFiles(); i++) {
         SgFile& file = proj->get_file(i);
-        
-        //determine if this is actually a file we specified.
-        //not a rose generated file for modules.
-        //
-        //rose likes to give us a FULL file path... but it seems that
-        //SgFile::get_originalCommandLineArgumentList(); returns a subset of 'argv'
-        //with cmdl[0] == argv[0]. So we use this as an ugly hack!
-        auto cmdl = file.get_originalCommandLineArgumentList();
-        bool found = (cmdl[0].compare(argv[0])==0);
+        if(!is_input_file(file,argv)) continue;
+
+	ftc::GFinder finder;
+	SgGlobal* gscope = finder.find(&file);
+        assert(gscope!=NULL);
+
+	input_globals.push_back(gscope);
+    }
+   
+    for(int i = 0; i<proj->numberOfFiles(); i++) {
+        SgFile& file = proj->get_file(i);
+        if(!is_input_file(file,argv)) continue;
         
         #if DEBUG
             cout << endl << endl << endl;
         #endif
        
-        if(!found) {
-            #if DEBUG
-                cout << ".. ignoring ROSE generated file! :: " << file.getFileName() << endl;
-            #endif
-            continue;
-        }
-        
         //--------------------------------
         
         #if DEBUG

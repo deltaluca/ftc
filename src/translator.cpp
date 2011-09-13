@@ -1,5 +1,6 @@
 #include "translator.hpp"
 #include "rose.h"
+#include "main.hpp"
 #include <iostream>
 #include <vector>
 #include <string>
@@ -599,10 +600,11 @@ namespace ftc {
         }
     };
 
-    SgFunctionDeclaration* xf_get_fn_decl(const string& name, SgNode* root) {
+    SgFunctionDeclaration* xf_get_fn_decl(const string& name) {
         FFinder finder (name);
         try {
-            finder.traverse(root, preorder);
+            for(auto i = input_globals.begin(); i!=input_globals.end(); i++)
+	            finder.traverse(*i, preorder);
         }catch(...) {
         }
         return finder.result;
@@ -705,7 +707,7 @@ SgExpression* ftc::xf_expr(SgExpression* expr, vector<Intent>* intents) {
         //
         //I tried doing this via lookupFunctionSymbolInParentScopes(getScope(expr))
         //but it doesn't work! so this will do...
-        auto* fort_decl = xf_get_fn_decl(fn_name.getString(), getGlobalScope(expr));
+        auto* fort_decl = xf_get_fn_decl(fn_name.getString());
         SgExprListExp* fn_args = NULL;
         if(fort_decl!=NULL) {
             auto intents = xf_fn_decl_ordered_intents(fort_decl);
@@ -771,6 +773,7 @@ SgExpression* ftc::xf_expr(SgExpression* expr, vector<Intent>* intents) {
         //first determine if any arguments require a new variable for the function call
         //in this case, we should pre-calculate ALL arguments to keep order of execution
         //well defined in the face of possible side-effects.
+
         int ind = 0;
         for(auto i = exprs.begin(); i!=exprs.end(); i++) {
             auto* ex = xf_expr(*i);
